@@ -20,7 +20,7 @@
 
 # Using mapper with class exist with table in database
 from sqlalchemy.orm import mapper, relationship
-import models
+from domain import models
 from sqlalchemy import Table, MetaData, Column, Integer, String, Date, ForeignKey
 
 meta_data = MetaData()
