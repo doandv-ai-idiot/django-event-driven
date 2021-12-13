@@ -53,7 +53,7 @@ allocations = Table(
 )
 
 
-def start_mappers():
+def start_mappers(engine):
     lines_mapper = mapper(models.OrderLine, order_lines)
     mapper(
         models.Batch,
@@ -64,3 +64,4 @@ def start_mappers():
             )
         },
     )
+    meta_data.create_all(engine)

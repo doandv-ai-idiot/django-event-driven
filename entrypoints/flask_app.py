@@ -8,8 +8,9 @@ from domain import models
 from adapters import orm, repository
 from service_layer import services
 
-orm.start_mappers()
-get_session = sessionmaker(bind=create_engine(config.get_postgres_uri()))
+engine = create_engine(config.get_postgres_uri())
+orm.start_mappers(engine)
+get_session = sessionmaker(bind=engine)
 app = Flask(__name__)
 
 
