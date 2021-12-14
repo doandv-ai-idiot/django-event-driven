@@ -20,14 +20,14 @@
 
 # Using mapper with class exist with table in database
 from sqlalchemy.orm import mapper, relationship
-from domain import models
+from allocation.domain import models
 from sqlalchemy import Table, MetaData, Column, Integer, String, Date, ForeignKey
 
-meta_data = MetaData()
+metadata = MetaData()
 
 order_lines = Table(
     "order_lines",
-    meta_data,
+    metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
     Column("sku", String(255)),
     Column("qty", Integer, nullable=False),
@@ -36,7 +36,7 @@ order_lines = Table(
 
 batches = Table(
     "batches",
-    meta_data,
+    metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
     Column("reference", String(255)),
     Column("sku", String(255)),
@@ -46,14 +46,14 @@ batches = Table(
 
 allocations = Table(
     "allocations",
-    meta_data,
+    metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
     Column("orderline_id", ForeignKey("order_lines.id")),
     Column("batch_id", ForeignKey("batches.id")),
 )
 
 
-def start_mappers(engine):
+def start_mappers():
     lines_mapper = mapper(models.OrderLine, order_lines)
     mapper(
         models.Batch,
@@ -64,4 +64,7 @@ def start_mappers(engine):
             )
         },
     )
-    meta_data.create_all(engine)
+
+
+def init_models(engine):
+    metadata.create_all(bind=engine)

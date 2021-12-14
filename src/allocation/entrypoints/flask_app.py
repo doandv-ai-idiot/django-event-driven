@@ -3,22 +3,21 @@ from flask import Flask, request
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-import config
-from domain import models
-from adapters import orm, repository
-from service_layer import services
-
+from allocation import config
+from allocation.domain import models
+from allocation.adapters import orm
+from allocation.service_layer import services, unit_of_work
 
 print(config.get_postgres_uri())
-orm.start_mappers(create_engine(config.get_postgres_uri()))
-get_session = sessionmaker(bind=create_engine(config.get_postgres_uri()))
+engine = create_engine(config.get_postgres_uri())
+orm.init_models(engine)
+orm.start_mappers()
+get_session = sessionmaker(bind=engine)
 app = Flask(__name__)
 
 
 @app.route("/add_batch", methods=["POST"])
 def add_batch():
-    session = get_session()
-    repo = repository.SqlAlchemyRepository(session)
     eta = request.json["eta"]
     if eta is not None:
         eta = datetime.fromisoformat(eta).date()
@@ -27,23 +26,19 @@ def add_batch():
         request.json["sku"],
         request.json["qty"],
         eta,
-        repo,
-        session,
+        unit_of_work.SqlAlchemyUnitOfWork()
     )
     return "OK", 201
 
 
 @app.route("/allocate", methods=["POST"])
 def allocate_endpoint():
-    session = get_session()
-    repo = repository.SqlAlchemyRepository(session)
     try:
         batchref = services.allocate(
             request.json["orderid"],
             request.json["sku"],
             request.json["qty"],
-            repo,
-            session,
+            unit_of_work.SqlAlchemyUnitOfWork()
         )
     except (models.OutOfStock, services.InvalidSku) as e:
         return {"message": str(e)}, 400
